@@ -61,8 +61,12 @@ def read_data(data):
         data_parse = urllib.parse.unquote_plus(data.decode())
         try:
             parse_dict = {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}
-            with open('storage/data.json', 'a', encoding='utf-8') as file:
-                json.dump(parse_dict, file, ensure_ascii=False, indent=4)
+            with open('storage/data.json', 'r', encoding='utf-8') as feedsjson:
+                feeds = json.load(feedsjson)
+                with open('storage/data.json', 'w', encoding='utf-8') as feedsjson:
+                    d_now = str(datetime.now())
+                    feeds[d_now] = {'username': parse_dict['username'], 'message': parse_dict['message']}
+                    json.dump(feeds, feedsjson, ensure_ascii=False, indent=3)
         except ValueError as err:
             logging.error(err)
         except OSError as err:
@@ -70,7 +74,7 @@ def read_data(data):
 
 def run_socket_server(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server = ('127.0.0.1', 8080)
+    server = (host, port)
     sock.bind(server)
     try:
         while True:
